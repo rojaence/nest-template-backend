@@ -12,6 +12,7 @@ export type I18nTranslations = {
             "alreadySent": string;
             "invalid": string;
             "invalidProcess": string;
+            "activeToken": string;
         };
     };
     "mail": {

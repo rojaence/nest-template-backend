@@ -7,6 +7,9 @@ import {
   OtpProcessStatusEnum,
   OtpStatusCodeType,
   OtpStatusProcessType,
+  OtpToken,
+  OtpTokenCreateDTO,
+  OtpVerifyTokenType,
 } from '../models/otp.interface';
 import { MongoService } from '@src/database/mongo/mongo.service';
 import { CollectionName } from '@src/database/mongo/mongo.interface';
@@ -22,6 +25,10 @@ export class OtpRepository {
 
   private get process() {
     return this.db.collection<OtpProcess>(CollectionName.SEC_OTP_PROCESS);
+  }
+
+  private get tokens() {
+    return this.db.collection<OtpToken>(CollectionName.SEC_OTP_TOKENS);
   }
 
   async saveCode(payload: OtpCodeCreateDTO): Promise<OtpCode> {
@@ -88,6 +95,46 @@ export class OtpRepository {
         sort: { exp: -1 },
       },
     );
+    return result;
+  }
+
+  async saveOtpToken(payload: OtpTokenCreateDTO): Promise<OtpToken> {
+    const result = await this.tokens.insertOne(payload);
+    return {
+      _id: result.insertedId,
+      ...payload,
+    };
+  }
+
+  async findOtpToken(
+    filter: Pick<OtpVerifyTokenType, 'userId' | 'otpProcessId'>,
+  ) {
+    const result = await this.tokens.findOne(
+      {
+        userId: filter.userId,
+        otpProcessId: filter.otpProcessId,
+      },
+      {
+        sort: { exp: -1 },
+      },
+    );
+    return result;
+  }
+
+  async findOtpTokenActive(
+    filter: Pick<OtpVerifyTokenType, 'userId' | 'processType'>,
+  ) {
+    const result = await this.tokens.findOne({
+      userId: filter.userId,
+      processType: filter.processType,
+    });
+    return result;
+  }
+
+  async revokeToken(id: ObjectId) {
+    const result = await this.tokens.deleteOne({
+      _id: id,
+    });
     return result;
   }
 }

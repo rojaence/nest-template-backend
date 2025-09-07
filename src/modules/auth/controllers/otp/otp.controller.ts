@@ -41,14 +41,14 @@ export class OtpController {
     @User() user: IJwtPayload,
     @Body() otpPayload: OtpGenerateCodeDTO,
   ) {
-    const code = await this.otpService.generateCode(
+    const success = await this.otpService.generateCode(
       user.userId,
       otpPayload.processType,
     );
     return HttpResponse.success({
       statusCode: HttpStatus.OK,
       message: this.translation.t('validation.httpMessages.success') as string,
-      data: { code },
+      data: { success },
     });
   }
 

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OtpRepository } from '@auth/repositories/otp.repository';
 import { BcryptService } from '@src/common/services/bcrypt/bcrypt.service';
-import { randomInt } from 'crypto';
+import { randomInt, randomBytes } from 'crypto';
 import { DateService } from '@src/common/services/date/date.service';
 import { TranslationService } from '@src/common/helpers/i18n-translation';
 import {
@@ -11,6 +11,7 @@ import {
   OtpProcessStatusEnum,
   OtpStatusCodeType,
   OtpVerifyCodeType,
+  OtpVerifyTokenType,
 } from '@auth/models/otp.interface';
 import { MailService } from '@src/mail/mail.service';
 import { AuthRepository } from '../../repositories/auth.repository';
@@ -32,6 +33,13 @@ export class OtpService {
     });
     if (exists) {
       throw new BadRequestException(this.translation.t('auth.otp.alreadySent'));
+    }
+    const otpTokenExists = await this.otpRepository.findOtpTokenActive({
+      userId,
+      processType,
+    });
+    if (otpTokenExists) {
+      throw new BadRequestException(this.translation.t('auth.otp.activeToken'));
     }
     const otp = randomInt(999999).toString().padStart(6, '0');
     const code = await this.bcryptService.genPasswordHash(otp);
@@ -58,7 +66,7 @@ export class OtpService {
       processType,
       processCode: otp,
     });
-    return otp;
+    return true;
   }
 
   async verifyCode(payload: OtpVerifyCodeType) {
@@ -82,7 +90,17 @@ export class OtpService {
       OtpProcessStatusEnum.VERIFIED,
     );
     await this.otpRepository.revokeCode(exists._id);
-    return true;
+    const otpToken = this.generateOtpToken();
+    await this.otpRepository.saveOtpToken({
+      otpProcessId: process!._id,
+      processType: exists.processType,
+      code: await this.bcryptService.genPasswordHash(otpToken),
+      userId: exists.userId,
+      exp: this.dateService.addMinutes(new Date(), 10),
+    });
+    return {
+      otpToken,
+    };
   }
 
   async statusActiveProcess(payload: OtpStatusCodeType) {
@@ -97,5 +115,30 @@ export class OtpService {
         this.translation.t('auth.otp.invalidProcess'),
       );
     return valid;
+  }
+
+  private async verifyOtpToken(payload: OtpVerifyTokenType) {
+    const token = await this.otpRepository.findOtpToken(payload);
+    if (!token) {
+      throw new BadRequestException(this.translation.t('auth.otp.invalid'));
+    }
+    const valid = await this.bcryptService.chechPasswordHash(
+      payload.code,
+      token.code,
+    );
+    if (!valid) {
+      throw new BadRequestException(
+        this.translation.t('auth.otp.invalidProcess'),
+      );
+    }
+    await this.otpRepository.revokeToken(token._id);
+    return {
+      valid,
+    };
+  }
+
+  private generateOtpToken(size: number = 16) {
+    const token = randomBytes(size).toString('hex');
+    return token;
   }
 }

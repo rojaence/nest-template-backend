@@ -35,6 +35,15 @@ export interface OtpProcess {
   exp: Date;
 }
 
+export interface OtpToken {
+  _id?: ObjectId;
+  userId: string;
+  processType: OtpProcessEnum;
+  otpProcessId: ObjectId;
+  code: string;
+  exp: Date;
+}
+
 export class OtpVerifyCodeDTO {
   @ApiProperty({ example: '123456' })
   @IsString()
@@ -61,10 +70,23 @@ export class OtpStatusCodeDTO {
   processType: OtpProcessEnum;
 }
 
+export class OtpVerifyTokenDTO {
+  @ApiProperty({ example: 'token_string' })
+  @IsNotEmpty()
+  token: string;
+  @IsNotEmpty()
+  @ApiProperty({ example: 'change_password' })
+  @IsEnum(OtpProcessEnum)
+  processType: OtpProcessEnum;
+}
+
 export type OtpCodeCreateDTO = Omit<OtpCode, '_id'>;
 export type OtpProcessCreateDTO = Omit<OtpProcess, '_id'> & {
   codeId: ObjectId;
 };
+
+export type OtpTokenCreateDTO = Omit<OtpToken, '_id'>;
+
 export type OtpVerifyCodeType = {
   userId: string;
   code: string;
@@ -74,6 +96,13 @@ export type OtpVerifyCodeType = {
 export type OtpStatusCodeType = {
   userId: string;
   processType: OtpProcessEnum;
+};
+
+export type OtpVerifyTokenType = Pick<
+  OtpToken,
+  'userId' | 'processType' | 'otpProcessId'
+> & {
+  code: string;
 };
 
 export type OtpStatusProcessType = {
