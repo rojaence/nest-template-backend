@@ -29,7 +29,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception.message || response.statusMessage;
-
     if (exception instanceof BadRequestException) {
       const responseError = exception.getResponse();
       const translatedMessage = this.translationService.t(
@@ -39,8 +38,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const validationErrors = responseError as IErrorResponse;
         response.status(status).json({
           statusCode: status,
-          message: translatedMessage,
-          error: validationErrors.message,
+          message: validationErrors.message,
+          error: translatedMessage,
         });
       } else if (typeof responseError === 'string') {
         response.status(status).json({

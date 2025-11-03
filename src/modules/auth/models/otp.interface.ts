@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
 import { ObjectId } from 'mongodb';
 
 export const OtpRevokeReason = {
@@ -7,7 +7,7 @@ export const OtpRevokeReason = {
 } as const;
 
 export enum OtpProcessEnum {
-  CHANGE_PASSWORD = 'change_password',
+  CHANGE_PASSWORD = 'CHANGE_PASSWORD',
 }
 
 export enum OtpProcessStatusEnum {
@@ -56,11 +56,25 @@ export class OtpVerifyCodeDTO {
   processType: OtpProcessEnum;
 }
 
+export class OtpVerifyCodeEmailDTO extends OtpVerifyCodeDTO {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
 export class OtpGenerateCodeDTO {
   @ApiProperty({ example: 'change_password' })
   @IsNotEmpty()
   @IsEnum(OtpProcessEnum)
   processType: OtpProcessEnum;
+}
+
+export class OtpEmailGenerateCodeDTO extends OtpGenerateCodeDTO {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }
 
 export class OtpStatusCodeDTO {
@@ -87,10 +101,14 @@ export type OtpProcessCreateDTO = Omit<OtpProcess, '_id'> & {
 
 export type OtpTokenCreateDTO = Omit<OtpToken, '_id'>;
 
-export type OtpVerifyCodeType = {
+export interface OtpVerifyCodeType {
   userId: string;
   code: string;
   processType: OtpProcessEnum;
+}
+
+export type OtpVerifyCodeEmailType = Omit<OtpVerifyCodeType, 'userId'> & {
+  email: string;
 };
 
 export type OtpStatusCodeType = {

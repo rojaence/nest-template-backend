@@ -8,6 +8,10 @@ export type I18nTranslations = {
     "auth": {
         "invalidCredentials": string;
         "userNotFound": string;
+        "resetPassword": {
+            "emailSent": string;
+            "success": string;
+        };
         "otp": {
             "alreadySent": string;
             "invalid": string;
@@ -32,6 +36,8 @@ export type I18nTranslations = {
             "resourceNotFound": string;
             "badRequest": string;
             "internalServerError": string;
+            "error": string;
+            "unauthorized": string;
         };
     };
 };

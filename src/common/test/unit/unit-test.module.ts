@@ -11,6 +11,9 @@ import { MockMongoService } from '@src/database/mocks/mongo-client/mock-mongo.se
 import { DateService } from '@src/common/services/date/date.service';
 import { MailService } from '@src/mail/mail.service';
 import { MockMailService } from '../../../../test/mocks/mail.service.mock';
+import { OtpService } from '@src/modules/auth/services/otp/otp.service';
+import { OtpRepository } from '@src/modules/auth/repositories/otp.repository';
+import { AuthRepository } from '@src/modules/auth/repositories/auth.repository';
 
 export class BaseUnitTestModule {
   static forRoot(): DynamicModule {
@@ -41,6 +44,9 @@ export class BaseUnitTestModule {
         },
         BcryptService,
         JwtService,
+        OtpService,
+        OtpRepository,
+        AuthRepository,
         DateService,
         {
           provide: MailService,
@@ -53,6 +59,7 @@ export class BaseUnitTestModule {
         PrismaService,
         BcryptService,
         JwtService,
+        OtpService,
         MongoService,
         DateService,
         MailService,
