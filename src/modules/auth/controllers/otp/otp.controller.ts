@@ -37,7 +37,6 @@ export class OtpController {
   @ApiOperation({ summary: 'Generate a new otp code and process' })
   @ApiOkResponse({ description: 'Return an otp valid code' })
   @ApiBadRequestResponse({ description: 'Otp code already exists' })
-  @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async generateOtp(
     @User() user: IJwtPayload,
@@ -102,7 +101,6 @@ export class OtpController {
   @ApiOperation({ summary: 'Generate a new email otp code and process' })
   @ApiOkResponse({ description: 'Return an email otp valid code' })
   @ApiBadRequestResponse({ description: 'Email otp code already exists' })
-  @HttpCode(HttpStatus.CREATED)
   async generateEmailOtp(@Body() otpPayload: OtpEmailGenerateCodeDTO) {
     const success = await this.otpService.generateCodeByEmail(otpPayload);
     return HttpResponse.success({

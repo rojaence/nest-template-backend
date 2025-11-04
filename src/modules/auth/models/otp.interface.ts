@@ -21,6 +21,7 @@ export interface OtpCode {
   userId: string;
   code: string;
   revokedAt: Date | null;
+  createdAt: Date;
   processType: OtpProcessEnum;
   exp: Date;
   reason?: string;

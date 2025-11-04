@@ -29,6 +29,7 @@ export const setupTestApp = async (): Promise<SetupTestAppI> => {
 
   const app: INestApplication<App> = moduleFixture.createNestApplication();
   app.use(cookieParser());
+  app.useLogger(['log']);
   await app.init();
   return { app, module: moduleFixture };
 };

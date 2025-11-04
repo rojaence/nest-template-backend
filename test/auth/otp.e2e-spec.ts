@@ -1,4 +1,8 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  INestApplication,
+} from '@nestjs/common';
 import {
   OtpCode,
   OtpProcess,
@@ -19,6 +23,7 @@ import { BcryptService } from '@src/common/services/bcrypt/bcrypt.service';
 import { DateService } from '@src/common/services/date/date.service';
 import { MailService } from '@src/mail/mail.service';
 import { AuthRepository } from '@src/modules/auth/repositories/auth.repository';
+import { TranslationService } from '@src/common/helpers/i18n-translation';
 
 interface GenerateOtpResponse {
   data: {
@@ -48,6 +53,7 @@ describe('OtpController (e2e)', () => {
   let mailService: MailService;
   let dateService: DateService;
   let authRepository: AuthRepository;
+  let translation: TranslationService;
   const otpCode = '111111';
 
   beforeAll(async () => {
@@ -58,6 +64,7 @@ describe('OtpController (e2e)', () => {
     mailService = module.get<MailService>(MailService);
     dateService = module.get<DateService>(DateService);
     authRepository = module.get<AuthRepository>(AuthRepository);
+    translation = module.get<TranslationService>(TranslationService);
 
     testApp = app;
 
@@ -65,6 +72,19 @@ describe('OtpController (e2e)', () => {
       .spyOn(otpService, 'generateCode')
       .mockImplementation(
         async (userId: string, processType: OtpProcessEnum) => {
+          const exists = await otpRepository.findActiveCode({
+            userId,
+            processType,
+          });
+          if (exists) {
+            const isBefore = otpService.isBeforeTimeout(exists);
+            if (isBefore) {
+              throw new BadRequestException(
+                translation.t('auth.otp.alreadySent'),
+              );
+            }
+            await otpService.invalidateLastCode(exists);
+          }
           const otp = otpCode;
           const code = await bcryptService.genPasswordHash(otp);
           const exp = dateService.addMinutes(new Date(), 3);
@@ -72,6 +92,7 @@ describe('OtpController (e2e)', () => {
             userId,
             code,
             processType,
+            createdAt: new Date(),
             revokedAt: null,
             exp,
           };
@@ -133,5 +154,24 @@ describe('OtpController (e2e)', () => {
     const verifyBody = verify.body as OtpVerifyResponse;
     expect(verify.status).toBe(HttpStatus.OK);
     expect(verifyBody.data.otpToken).toBeDefined();
+  });
+
+  it('/ (POST) should block generate another code for the same processType when there is a timeout', async () => {
+    const res = await request(testApp.getHttpServer())
+      .post('/otp/email/generate')
+      .send({
+        processType: OtpProcessEnum.CHANGE_PASSWORD,
+        email: userData.email,
+      });
+    const body = res.body as GenerateOtpResponse;
+    expect(body.data.success).toBe(true);
+
+    const newRes = await request(testApp.getHttpServer())
+      .post('/otp/email/generate')
+      .send({
+        processType: OtpProcessEnum.CHANGE_PASSWORD,
+        email: userData.email,
+      });
+    expect(newRes.status).toBe(HttpStatus.BAD_REQUEST);
   });
 });

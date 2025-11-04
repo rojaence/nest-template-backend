@@ -34,7 +34,15 @@ export class OtpService {
       userId,
       processType,
     });
-    if (exists) await this.invalidateLastCode(exists);
+    if (exists) {
+      const isBefore = this.isBeforeTimeout(exists);
+      if (isBefore) {
+        throw new BadRequestException(
+          this.translation.t('auth.otp.alreadySent'),
+        );
+      }
+      await this.invalidateLastCode(exists);
+    }
     const otp = randomInt(999999).toString().padStart(6, '0');
     const code = await this.bcryptService.genPasswordHash(otp);
     const exp = this.dateService.addMinutes(new Date(), 3);
@@ -42,6 +50,7 @@ export class OtpService {
       userId,
       code,
       processType,
+      createdAt: new Date(),
       revokedAt: null,
       exp,
     };
@@ -184,5 +193,10 @@ export class OtpService {
       userId: payload.userId,
     });
     if (otpToken) await this.otpRepository.revokeToken(otpToken._id);
+  }
+
+  isBeforeTimeout(otpCode: WithId<OtpCode>) {
+    const timeoutEnd = this.dateService.addMinutes(otpCode.createdAt, 1);
+    return this.dateService.isBefore(new Date(), timeoutEnd);
   }
 }
