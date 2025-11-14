@@ -11,9 +11,11 @@ import { AuthGuard } from '@src/common/guards/auth/auth.guard';
 import { HttpResponse } from '@src/common/helpers/http-response';
 import { IJwtPayload } from '../../models/auth.interface';
 import {
+  OtpEmailGenerateCodeDTO,
   OtpGenerateCodeDTO,
   OtpStatusCodeDTO,
   OtpVerifyCodeDTO,
+  OtpVerifyCodeEmailDTO,
 } from '../../models/otp.interface';
 import { OtpService } from '../../services/otp/otp.service';
 import { TranslationService } from '@src/common/helpers/i18n-translation';
@@ -35,20 +37,19 @@ export class OtpController {
   @ApiOperation({ summary: 'Generate a new otp code and process' })
   @ApiOkResponse({ description: 'Return an otp valid code' })
   @ApiBadRequestResponse({ description: 'Otp code already exists' })
-  @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async generateOtp(
     @User() user: IJwtPayload,
     @Body() otpPayload: OtpGenerateCodeDTO,
   ) {
-    const code = await this.otpService.generateCode(
+    const success = await this.otpService.generateCode(
       user.userId,
       otpPayload.processType,
     );
     return HttpResponse.success({
       statusCode: HttpStatus.OK,
       message: this.translation.t('validation.httpMessages.success') as string,
-      data: { code },
+      data: { success },
     });
   }
 
@@ -62,7 +63,7 @@ export class OtpController {
     @User() user: IJwtPayload,
     @Body() payload: OtpVerifyCodeDTO,
   ) {
-    const verified = await this.otpService.verifyCode({
+    const { otpToken } = await this.otpService.verifyCodeByAccessToken({
       code: payload.code,
       userId: user.userId,
       processType: payload.processType,
@@ -71,7 +72,7 @@ export class OtpController {
     return HttpResponse.success({
       statusCode: HttpStatus.OK,
       message: this.translation.t('validation.httpMessages.success') as string,
-      data: { verified },
+      data: { otpToken },
     });
   }
 
@@ -85,14 +86,46 @@ export class OtpController {
     @User() user: IJwtPayload,
     @Body() payload: OtpStatusCodeDTO,
   ) {
-    const valid = await this.otpService.statusActiveProcess({
+    const validProccess = await this.otpService.statusActiveProcess({
       userId: user.userId,
       processType: payload.processType,
     });
     return HttpResponse.success({
       statusCode: HttpStatus.OK,
       message: this.translation.t('validation.httpMessages.success') as string,
-      data: { valid },
+      data: { valid: validProccess.valid },
+    });
+  }
+
+  @Post('/email/generate')
+  @ApiOperation({ summary: 'Generate a new email otp code and process' })
+  @ApiOkResponse({ description: 'Return an email otp valid code' })
+  @ApiBadRequestResponse({ description: 'Email otp code already exists' })
+  async generateEmailOtp(@Body() otpPayload: OtpEmailGenerateCodeDTO) {
+    const success = await this.otpService.generateCodeByEmail(otpPayload);
+    return HttpResponse.success({
+      statusCode: HttpStatus.OK,
+      message: this.translation.t('validation.httpMessages.success') as string,
+      data: { success },
+    });
+  }
+
+  @Post('/email/verify')
+  @ApiOperation({ summary: 'Update status otp code to verified' })
+  @ApiOkResponse({ description: 'Return a boolean verified' })
+  @ApiBadRequestResponse({ description: 'Invalid otp code' })
+  @HttpCode(HttpStatus.OK)
+  async verifyEmailOtp(@Body() payload: OtpVerifyCodeEmailDTO) {
+    const { otpToken } = await this.otpService.verifyCodeByEmail({
+      code: payload.code,
+      email: payload.email,
+      processType: payload.processType,
+    });
+
+    return HttpResponse.success({
+      statusCode: HttpStatus.OK,
+      message: this.translation.t('validation.httpMessages.success') as string,
+      data: { otpToken },
     });
   }
 }

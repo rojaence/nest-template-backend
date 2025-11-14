@@ -3,6 +3,8 @@
     "success": "Proceso ejecutado con éxito",
     "resourceNotFound": "No se encontró el recurso solicitado",
     "badRequest": "Errores de validación",
-    "internalServerError": "Error interno"
+    "internalServerError": "Error interno",
+    "error": "Ocurrió un error",
+    "unauthorized": "No autorizado"
   }
 }

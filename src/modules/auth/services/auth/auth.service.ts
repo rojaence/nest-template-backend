@@ -12,9 +12,11 @@ import { JwtBlacklistRepository } from '../../repositories/jwt-blacklist.reposit
 import { randomUUID } from 'node:crypto';
 import environment from '@src/environment/environment';
 import { SignOptions } from 'jsonwebtoken';
-import { AuthAccessDto } from '../../models/auth.interface';
+import { AuthAccessDto, ResetPasswordType } from '../../models/auth.interface';
 import { JwtWhitelistRepository } from '../../repositories/jwt-whitelist.repository';
 import { User } from '@prisma/client';
+import { OtpService } from '../otp/otp.service';
+import { OtpProcessEnum } from '../../models/otp.interface';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly jwtBlacklistRepository: JwtBlacklistRepository,
     private readonly jwtWhitelistRepository: JwtWhitelistRepository,
+    private readonly otpService: OtpService,
   ) {}
 
   async login(credentials: LoginDto): Promise<AuthAccessDto> {
@@ -132,5 +135,36 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async resetPassword(payload: ResetPasswordType) {
+    const user = await this.authRepository.findUserByEmail(payload.email);
+    if (!user) {
+      throw new UnauthorizedException(
+        this.translation.t('validation.httpMessages.unauthorized'),
+      );
+    }
+    const validProccess = await this.otpService.statusActiveProcess({
+      userId: user.id,
+      processType: OtpProcessEnum.CHANGE_PASSWORD,
+    });
+    const isValid = await this.otpService.verifyOtpToken({
+      code: payload.otpToken,
+      processType: OtpProcessEnum.CHANGE_PASSWORD,
+      userId: user.id,
+      otpProcessId: validProccess.otpProccessId,
+    });
+
+    if (!isValid) {
+      throw new UnauthorizedException(
+        this.translation.t('auth.otp.invalidProcess'),
+      );
+    }
+
+    const hashedPassword = await this.bcryptService.genPasswordHash(
+      payload.password,
+    );
+
+    await this.authRepository.updateUserPassword(user.id, hashedPassword);
   }
 }

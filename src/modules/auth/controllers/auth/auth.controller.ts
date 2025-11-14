@@ -12,14 +12,11 @@ import { LoginDto } from '../../models/login.dto';
 import { AuthService } from '../../services/auth/auth.service';
 import { HttpResponse } from '@src/common/helpers/http-response';
 import { TranslationService } from '@src/common/helpers/i18n-translation';
-import environment from '@src/environment/environment';
 import { Response } from 'express';
 import { AuthGuard } from '@src/common/guards/auth/auth.guard';
 import { User } from '@src/common/decorators/user/user.decorator';
-import { IJwtPayload } from '../../models/auth.interface';
-import { CredentialsEnum } from '@src/common/constants/auth';
+import { IJwtPayload, ResetPasswordDto } from '../../models/auth.interface';
 import { JwtRevokeReason } from '../../models/jwt-blacklist.interface';
-import { OtpService } from '../../services/otp/otp.service';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -33,7 +30,6 @@ import {
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly otpService: OtpService,
     private readonly translation: TranslationService,
   ) {}
 
@@ -102,7 +98,6 @@ export class AuthController {
     @User() user: IJwtPayload,
     @Res({ passthrough: true }) response: Response,
   ) {
-
     await this.authService.logout({
       exp: new Date(user.exp! * 1000),
       jti: user.jti!,
@@ -117,5 +112,17 @@ export class AuthController {
     });
 
     response.status(HttpStatus.OK).json(result);
+  }
+
+  @Post('/reset-password')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiOkResponse({ description: 'Return success message' })
+  @ApiNotFoundResponse({ description: 'Not found profile data' })
+  async resetPassword(@Body() payload: ResetPasswordDto) {
+    await this.authService.resetPassword(payload);
+    return HttpResponse.success({
+      statusCode: HttpStatus.OK,
+      message: this.translation.t('validation.httpMessages.success') as string,
+    });
   }
 }
