@@ -2,4 +2,4 @@ Código de verificación
 
 Por favor utilice este código para verificar su identidad y continuar con el proceso de {{processType}}
 
-El equipo de NeoKanban 🚀
+El equipo de nest-template-backend 🚀

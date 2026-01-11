@@ -1,6 +1,6 @@
 {
   "helloMail": {
-    "subject": "👋 Bienvenido a NeoKanban"
+    "subject": "👋 Bienvenido a nest-template-backend"
   },
   "otp": {
     "subject": "Código de verificación",

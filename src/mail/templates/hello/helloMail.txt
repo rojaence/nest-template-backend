@@ -1,7 +1,7 @@
 Hola {{name}} 👋
 
-Gracias por unirte a NeoKanban.
+Gracias por unirte a nest-template-backend.
 
 Ya puedes empezar a crear tus proyectos y organizar tus tareas de manera sencilla.
 
-El equipo de NeoKanban 🚀
+El equipo de nest-template-backend 🚀

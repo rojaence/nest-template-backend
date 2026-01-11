@@ -13,11 +13,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('NeoKanban')
-    .setDescription('The API to NeoKanban')
+    .setTitle('nest-template-backend')
+    .setDescription('The API to nest-template-backend')
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('neokanban')
+    .addTag('nest-template-backend')
     .build();
   const options: SwaggerDocumentOptions = {
     operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
