@@ -28,8 +28,12 @@ const environment: EnvironmentConfigI = {
       : Number(process.env.JWT_REFRESH_EXPIRATION)
     : '2W',
   COOKIE_EXPIRATION: Number(process.env.COOKIE_EXPIRATION) || 3600,
-  DATABASE_URL: String(process.env.DATABASE_URL || ''),
-  MONGO_DATABASE_URL: String(process.env.MONGO_DATABASE_URL || ''),
+  DATABASE_URL:
+    process.env.DATABASE_URL ||
+    `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@localhost:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}?schema=public`,
+  MONGO_DATABASE_URL:
+    process.env.MONGO_DATABASE_URL ||
+    `mongodb://${process.env.MONGO_ROOT_USER}:${process.env.MONGO_ROOT_PASSWORD}@localhost:${process.env.MONGO_PORT}/${process.env.MONGO_DB}?authSource=admin`,
   DEFAULT_LANGUAGE: String(process.env.DEFAULT_LANGUAGE || 'es'),
   MAIL_HOST: String(process.env.MAIL_HOST || ''),
   MAIL_PORT: Number(process.env.MAIL_PORT || ''),

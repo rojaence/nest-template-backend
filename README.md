@@ -2,12 +2,12 @@
 
 Este es un proyecto de backend con nestjs.
 Es solo un proyecto personal para aprender desarrollo de software fullstack.
-La app tiene como concepto ser un pequeño project manager con las siguientes funcionalidades:
+La app tiene como concepto ser un pequeño template de backend con las siguientes funcionalidades:
 
 - Authenticación con JWT
-- Gestión de permisos por roles
-- Gestión de tareas
-- Gestión de proyectos (grupo de tareas)
+- Gestión de permisos por roles y perfiles (esquema básico)
+- Implementación básica para códigos otp
+- Servicio para envio de correos
 
 
 **Característica destacada**
@@ -19,6 +19,12 @@ incluye el desarrollo de pruebas unitarias y e2e con uso de mocks y seeders
 ```bash
 $ npm install
 ```
+
+## Env files
+
+Configurar los archivos de entorno, .env para desarrollo, .env.test para testing  
+utilizando de referencia el archivo .env.example, poner mucha atención a las variables  
+de bases de datos.
 
 ## Compile and run the project
 
@@ -47,8 +53,8 @@ Las pruebas e2e hacen uso de una base de datos real configurada en local con el 
 de bases de datos.
 
  ⚠️ **Advertencia:**
- El comando para pruebas e2e realiza un reinicio de la base de datos configurada en el 
- .env.test por lo que se debe precaución hacia donde apunta (DATABASE_URL).
+ El comando para pruebas e2e realiza un reinicio de la base de datos con las credenciales
+ configuradas en el .env.test por lo que se debe precaución hacia donde apunta (DATABASE_URL).
 
 ### Run tests
 
