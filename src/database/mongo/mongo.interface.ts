@@ -4,6 +4,7 @@ export const CollectionName = {
   SEC_OTP_PROCESS: 'sec_otp_process',
   SEC_JWT_WHITELIST: 'sec_jwt_whitelist',
   SEC_OTP_TOKENS: 'sec_otp_tokens',
+  AUDIT_LOGGING: 'audit_logging',
 } as const;
 
 export type CollectionNameType =

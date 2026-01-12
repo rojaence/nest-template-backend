@@ -9,6 +9,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception/http-except
 import { TranslationService } from './common/helpers/i18n-translation';
 import { ConfigModule } from '@nestjs/config';
 import { MailService } from './mail/mail.service';
+import { MongoService } from './database/mongo/mongo.service';
+import { LoggingService } from './common/services/logging/logging.service';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { MailService } from './mail/mail.service';
       useClass: HttpExceptionFilter,
     },
     MailService,
+    LoggingService,
+    MongoService,
   ],
 })
 export class AppModule {}

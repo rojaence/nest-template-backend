@@ -1,3 +1,5 @@
+export type NODE_ENV_TYPE = 'production' | 'development' | 'test';
+
 export interface EnvironmentConfigI {
   JWT_SECRET: string;
   JWT_EXPIRATION: string | number;
@@ -12,6 +14,7 @@ export interface EnvironmentConfigI {
   MAIL_USER: string;
   MAIL_PASS: string;
   MAIL_SENDER: string;
+  NODE_ENV: NODE_ENV_TYPE;
 }
 
 const environment: EnvironmentConfigI = {
@@ -40,6 +43,7 @@ const environment: EnvironmentConfigI = {
   MAIL_USER: String(process.env.MAIL_USER || ''),
   MAIL_PASS: String(process.env.MAIL_PASS || ''),
   MAIL_SENDER: String(process.env.MAIL_SENDER || ''),
+  NODE_ENV: (String(process.env.NODE_ENV) as NODE_ENV_TYPE) || 'development',
 };
 
 export default environment;

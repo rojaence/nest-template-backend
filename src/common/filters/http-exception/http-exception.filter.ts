@@ -5,10 +5,12 @@ import {
   ExceptionFilter,
   HttpException,
   Inject,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { TranslationService } from '@src/common/helpers/i18n-translation';
-import { Response } from 'express';
+import { LoggingService } from '@src/common/services/logging/logging.service';
+import { Response, Request } from 'express';
 
 interface IErrorResponse {
   message: string[];
@@ -18,9 +20,11 @@ interface IErrorResponse {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(LoggingService.name);
   constructor(
     @Inject(TranslationService)
     private readonly translationService: TranslationService,
+    private loggingService: LoggingService,
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
@@ -66,5 +70,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
       response.status(status).json(responseError);
     }
+    this.loggingService
+      .logError(exception, ctx.getRequest<Request>(), status)
+      .catch((err) => {
+        this.logger.error('Failed to log exception', err);
+      });
   }
 }
